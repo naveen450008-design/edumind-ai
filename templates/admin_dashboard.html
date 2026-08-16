@@ -1,0 +1,248 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Admin Intelligence Console - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">Institution Intelligence Console</h1>
+    <p class="text-muted small mb-0">College-wide Performance Metrics, AI Risk Distribution & Course Analytics</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin_management') }}" class="btn btn-outline-light btn-sm rounded-3">
+      <i class="bi bi-gear-wide-connected me-1"></i> Manage Entities
+    </a>
+    <a href="{{ url_for('admin_analytics') }}" class="btn btn-primary btn-sm rounded-3 fw-bold">
+      <i class="bi bi-bar-chart-line-fill me-1"></i> Full AI Analytics Report
+    </a>
+  </div>
+</div>
+
+<!-- Admin KPI Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="kpi-card text-center">
+      <div class="text-muted small fw-semibold text-uppercase">Total Students</div>
+      <div class="h3 fw-bold text-white my-1">{{ total_students }}</div>
+      <div class="small text-info">Enrolled</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="kpi-card text-center">
+      <div class="text-muted small fw-semibold text-uppercase">Total Teachers</div>
+      <div class="h3 fw-bold text-white my-1">{{ total_teachers }}</div>
+      <div class="small text-muted">Faculty</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="kpi-card text-center">
+      <div class="text-muted small fw-semibold text-uppercase">Total Courses</div>
+      <div class="h3 fw-bold text-white my-1">{{ total_courses }}</div>
+      <div class="small text-muted">Active</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="kpi-card text-center">
+      <div class="text-muted small fw-semibold text-uppercase">Avg Attendance</div>
+      <div class="h3 fw-bold text-white my-1">{{ avg_attendance }}%</div>
+      <div class="small text-success">Target: >75%</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="kpi-card text-center">
+      <div class="text-muted small fw-semibold text-uppercase">Avg Performance</div>
+      <div class="h3 fw-bold text-white my-1">{{ avg_performance }}%</div>
+      <div class="small text-info">Composite</div>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="kpi-card text-center high-risk">
+      <div class="text-muted small fw-semibold text-uppercase">High-Risk</div>
+      <div class="h3 fw-bold text-danger my-1">{{ high_risk_count }}</div>
+      <div class="small text-danger fw-bold">Critical</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="row g-4 mb-4">
+  <!-- Chart 1: Risk Distribution Doughnut -->
+  <div class="col-lg-4 col-md-6">
+    <div class="glass-card p-4 h-100">
+      <h3 class="h6 text-white fw-bold mb-3">
+        <i class="bi bi-pie-chart-fill text-primary me-2"></i> AI Risk Level Distribution
+      </h3>
+      <div style="height: 240px;" class="d-flex align-items-center justify-content-center">
+        <canvas id="riskPieChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 2: Subject Performance Comparison Bar -->
+  <div class="col-lg-4 col-md-6">
+    <div class="glass-card p-4 h-100">
+      <h3 class="h6 text-white fw-bold mb-3">
+        <i class="bi bi-bar-chart-fill text-info me-2"></i> Course Score Breakdown
+      </h3>
+      <div style="height: 240px;">
+        <canvas id="subjectBarChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 3: Attendance Trend Line -->
+  <div class="col-lg-4 col-md-12">
+    <div class="glass-card p-4 h-100">
+      <h3 class="h6 text-white fw-bold mb-3">
+        <i class="bi bi-graph-up text-warning me-2"></i> Attendance Trend Log
+      </h3>
+      <div style="height: 240px;">
+        <canvas id="attendanceTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary Tables & High Risk Surveillance -->
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="glass-card p-4">
+      <h3 class="h5 text-white fw-bold mb-3">
+        <i class="bi bi-shield-exclamation text-danger me-2"></i> High-Risk Student Surveillance
+      </h3>
+      <div class="table-responsive">
+        <table class="table custom-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Attendance</th>
+              <th>Marks Score</th>
+              <th>Primary Risk Cause</th>
+              <th>Risk Level</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in high_risk_list %}
+            <tr>
+              <td>
+                <div class="fw-bold text-white">{{ s.name }}</div>
+                <div class="text-muted small">{{ s.email }}</div>
+              </td>
+              <td class="text-danger fw-bold">{{ s.att_pct }}%</td>
+              <td class="text-white fw-bold">{{ s.overall_score }}%</td>
+              <td class="small text-muted">
+                {% if s.weak_subjects %}Weak: {{ s.weak_subjects[0].course_name }}{% else %}Low Attendance{% endif %}
+              </td>
+              <td>
+                <span class="badge bg-danger text-white">HIGH RISK</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="glass-card p-4">
+      <h3 class="h5 text-white fw-bold mb-3">
+        <i class="bi bi-book-half text-primary me-2"></i> Course Performance Summary
+      </h3>
+      <div class="d-flex flex-column gap-3">
+        {% for c in course_analytics %}
+        <div>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="text-light fw-semibold small">{{ c.course_code }} - {{ c.course_name }}</span>
+            <span class="fw-bold text-white small">{{ c.avg_score }}%</span>
+          </div>
+          <div class="progress bg-dark border border-secondary border-opacity-25" style="height: 8px;">
+            <div class="progress-bar {% if c.avg_score < 65 %}bg-danger{% elif c.avg_score < 75 %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ c.avg_score }}%;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Risk Pie Chart
+  const ctxRisk = document.getElementById('riskPieChart').getContext('2d');
+  new Chart(ctxRisk, {
+    type: 'doughnut',
+    data: {
+      labels: ['High Risk', 'Medium Risk', 'Low Risk'],
+      datasets: [{
+        data: [{{ high_risk_count }}, {{ med_risk_count }}, {{ low_risk_count }}],
+        backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#94a3b8' } }
+      }
+    }
+  });
+
+  // 2. Subject Bar Chart
+  const ctxSub = document.getElementById('subjectBarChart').getContext('2d');
+  const courseLabels = [{% for c in course_analytics %}'{{ c.course_code }}',{% endfor %}];
+  const courseScores = [{% for c in course_analytics %}{{ c.avg_score }},{% endfor %}];
+
+  new Chart(ctxSub, {
+    type: 'bar',
+    data: {
+      labels: courseLabels,
+      datasets: [{
+        label: 'Avg Score (%)',
+        data: courseScores,
+        backgroundColor: ['#6366f1', '#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981'],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' } },
+        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // 3. Attendance Trend Chart
+  const ctxAtt = document.getElementById('attendanceTrendChart').getContext('2d');
+  new Chart(ctxAtt, {
+    type: 'line',
+    data: {
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+      datasets: [{
+        label: 'Overall Class Attendance (%)',
+        data: [82, 85, 78, 81, 79, 83],
+        borderColor: '#0ea5e9',
+        backgroundColor: 'rgba(14, 165, 233, 0.15)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { min: 60, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' } },
+        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255, 255, 255, 0.08)' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+});
+</script>
+{% endblock %}

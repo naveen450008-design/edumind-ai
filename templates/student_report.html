@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduMind AI - Official Student Academic Report - {{ perf.student_name }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      color: #212529;
+      padding: 30px;
+    }
+    .report-card {
+      background: #ffffff;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      padding: 40px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .institution-header {
+      border-bottom: 2px solid #0d6efd;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    @media print {
+      body {
+        background-color: #ffffff;
+        padding: 0;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .report-card {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="report-card">
+  <!-- Action Bar (Hidden during print) -->
+  <div class="no-print d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+    <div>
+      <button onclick="window.print()" class="btn btn-primary btn-sm me-2">
+        <i class="bi bi-printer-fill"></i> Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Institution Header -->
+  <div class="institution-header d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="fw-bold text-primary mb-1">
+        <i class="bi bi-cpu-fill"></i> EduMind AI Portal
+      </h2>
+      <p class="text-muted mb-0 small">Official Academic Diagnostic & Risk Evaluation Report</p>
+    </div>
+    <div class="text-end">
+      <div class="fw-bold text-dark">Team Unique Intelligence System</div>
+      <div class="text-muted small">Generated: {{ now_date }}</div>
+    </div>
+  </div>
+
+  <!-- Student Info Header -->
+  <div class="bg-light p-3 rounded-3 mb-4 border">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="text-muted small">Student Name</div>
+        <div class="fw-bold text-dark">{{ perf.student_name }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Roll Number</div>
+        <div class="fw-bold text-dark">{{ perf.roll_no }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Department</div>
+        <div class="fw-bold text-dark">{{ perf.department }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Academic Risk Tier</div>
+        <span class="badge {{ risk.bg_class }} text-white fw-bold">
+          {{ risk.status_label }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Performance Summary Metrics -->
+  <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-speedometer2 text-primary me-2"></i>Performance & Risk Metrics</h5>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="border rounded p-3 text-center bg-white">
+        <div class="text-muted small">Academic Health Score</div>
+        <div class="fs-4 fw-bold text-success">{{ risk.health_score }}/100</div>
+        <div class="small text-muted">Overall Wellness</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="border rounded p-3 text-center bg-white">
+        <div class="text-muted small">Academic Risk Score</div>
+        <div class="fs-4 fw-bold text-danger">{{ risk.risk_score }}/100</div>
+        <div class="small text-muted">{{ risk.risk_level }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="border rounded p-3 text-center bg-white">
+        <div class="text-muted small">Attendance Rate</div>
+        <div class="fs-4 fw-bold {% if perf.att_pct < 75 %}text-danger{% else %}text-success{% endif %}">
+          {{ perf.att_pct }}%
+        </div>
+        <div class="small text-muted">Req: &ge; 75%</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="border rounded p-3 text-center bg-white">
+        <div class="text-muted small">Overall Score</div>
+        <div class="fs-4 fw-bold text-primary">{{ perf.overall_score }}%</div>
+        <div class="small text-muted">{{ perf.perf_category }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Explainable AI Root Cause Analysis -->
+  {% if risk.root_cause_analysis %}
+  <div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white fw-bold">
+      <i class="bi bi-search me-1"></i> Explainable AI Root Cause Diagnosis
+    </div>
+    <div class="card-body">
+      <div class="mb-2">
+        <span class="fw-bold text-danger">Primary Cause:</span> {{ risk.root_cause_analysis.primary_cause }}
+      </div>
+      <div class="mb-3">
+        <span class="fw-bold text-dark">Secondary Risk Factors:</span>
+        <ul class="mb-0 text-muted small ps-3">
+          {% for sec in risk.root_cause_analysis.secondary_causes %}
+          <li>{{ sec }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Subject Level Breakdown -->
+  <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-journal-check text-primary me-2"></i>Subject Performance Breakdown</h5>
+  <table class="table table-bordered mb-4">
+    <thead class="table-light">
+      <tr>
+        <th>Course Code</th>
+        <th>Course Name</th>
+        <th>Recorded Score</th>
+        <th>Subject Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sub in perf.subject_performance %}
+      <tr>
+        <td class="fw-bold">{{ sub.course_code }}</td>
+        <td>{{ sub.course_name }}</td>
+        <td class="fw-bold">{{ sub.score }}%</td>
+        <td>
+          <span>{{ sub.status_icon }} {{ sub.status_label }}</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Personalized AI Recommendations -->
+  <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-lightbulb-fill text-warning me-2"></i>AI Recommended Action Plan</h5>
+  <div class="list-group mb-4">
+    {% for rec in recommendations %}
+    <div class="list-group-item">
+      <div class="d-flex w-100 justify-content-between">
+        <h6 class="mb-1 fw-bold text-dark">{{ rec.title }}</h6>
+        <small class="badge bg-secondary">{{ rec.category }}</small>
+      </div>
+      <p class="mb-1 text-muted small">{{ rec.action }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Signoff Footer -->
+  <div class="pt-4 border-top mt-5 d-flex justify-content-between text-muted small">
+    <div>EduMind AI Portal &bull; Team Unique</div>
+    <div>System Generated Diagnostic Document &bull; Confidential</div>
+  </div>
+</div>
+
+</body>
+</html>

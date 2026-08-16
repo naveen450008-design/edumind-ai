@@ -1,0 +1,174 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}User & Course Management - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">User & Entity Management</h1>
+    <p class="text-muted small mb-0">Manage Students, Faculty Teachers, Courses, and Academic Classes</p>
+  </div>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-pills mb-4 gap-2" id="mgmtTabs" role="tablist">
+  <li class="nav-item">
+    <button class="nav-link active bg-primary text-white rounded-3 fw-semibold" id="students-tab" data-bs-toggle="tab" data-bs-target="#studentsTab">
+      <i class="bi bi-people-fill me-1"></i> Students ({{ students|length }})
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link bg-dark text-light border border-secondary rounded-3 fw-semibold" id="teachers-tab" data-bs-toggle="tab" data-bs-target="#teachersTab">
+      <i class="bi bi-person-badge-fill me-1"></i> Teachers ({{ teachers|length }})
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link bg-dark text-light border border-secondary rounded-3 fw-semibold" id="courses-tab" data-bs-toggle="tab" data-bs-target="#coursesTab">
+      <i class="bi bi-book-fill me-1"></i> Courses ({{ courses|length }})
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content" id="mgmtTabsContent">
+  <!-- Students Tab -->
+  <div class="tab-pane fade show active" id="studentsTab">
+    <div class="glass-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h5 text-white fw-bold mb-0">Registered Students</h3>
+        <button class="btn btn-primary btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+          <i class="bi bi-plus-lg me-1"></i> Add New Student
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table custom-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Roll No</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Department</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in students %}
+            <tr>
+              <td class="text-muted">#{{ s.id }}</td>
+              <td class="fw-bold text-primary">{{ s.roll_no }}</td>
+              <td class="text-white fw-semibold">{{ s.name }}</td>
+              <td class="text-muted">{{ s.email }}</td>
+              <td><span class="badge bg-dark border border-secondary text-info">{{ s.department }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teachers Tab -->
+  <div class="tab-pane fade" id="teachersTab">
+    <div class="glass-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h5 text-white fw-bold mb-0">Faculty Members</h3>
+        <button class="btn btn-primary btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#addTeacherModal">
+          <i class="bi bi-plus-lg me-1"></i> Add New Teacher
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table custom-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Department</th>
+              <th>Designation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in teachers %}
+            <tr>
+              <td class="text-muted">#{{ t.id }}</td>
+              <td class="fw-bold text-white">{{ t.name }}</td>
+              <td class="text-muted">{{ t.email }}</td>
+              <td><span class="badge bg-dark border border-secondary text-info">{{ t.department }}</span></td>
+              <td class="text-light">{{ t.designation }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Courses Tab -->
+  <div class="tab-pane fade" id="coursesTab">
+    <div class="glass-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h5 text-white fw-bold mb-0">Academic Courses</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table custom-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Course Title</th>
+              <th>Credits</th>
+              <th>Department</th>
+              <th>Instructor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in courses %}
+            <tr>
+              <td class="fw-bold text-primary">{{ c.course_code }}</td>
+              <td class="text-white fw-semibold">{{ c.course_name }}</td>
+              <td class="text-muted">{{ c.credits }}</td>
+              <td><span class="badge bg-dark border border-secondary text-info">{{ c.department }}</span></td>
+              <td class="text-light">{{ c.teacher_name }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Student -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">Register New Student</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('admin_add_student') }}" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">Roll Number</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" name="roll_no" placeholder="e.g. CS202611" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">Full Name</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" name="name" placeholder="e.g. Alex Johnson" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">Email Address</label>
+            <input type="email" class="form-control bg-dark text-white border-secondary" name="email" placeholder="e.g. alex@edumind.ai" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">Department</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" name="department" value="Computer Science" required>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold">Register Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

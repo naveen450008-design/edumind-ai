@@ -1,0 +1,77 @@
+{% extends "dashboard_base.html" %}
+
+{% block dashboard_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h3 class="fw-bold text-white mb-1">
+      <i class="bi bi-bell-fill text-warning me-2"></i>Issue Academic & Parent Alerts
+    </h3>
+    <p class="text-muted small mb-0">Send automated or custom academic risk notices and remedial intervention directives to students & parents.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Side: Issue Alert Form -->
+  <div class="col-lg-6">
+    <div class="card-glass p-4 rounded-4 border border-secondary border-opacity-25">
+      <h5 class="fw-bold text-white mb-4"><i class="bi bi-send-fill text-primary me-2"></i>Dispatch Risk Alert</h5>
+
+      <form action="{{ url_for('teacher_notifications') }}" method="POST">
+        <div class="mb-3">
+          <label class="form-label text-white small">Target Student</label>
+          <select name="student_id" class="form-select bg-dark text-white border-secondary" required>
+            {% for s in students %}
+            <option value="{{ s.id }}">{{ s.name }} ({{ s.roll_no }}) - {{ s.department }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-white small">Alert Type</label>
+          <select name="alert_type" class="form-select bg-dark text-white border-secondary" required>
+            <option value="HIGH_RISK">🔴 High Risk Academic Warning</option>
+            <option value="MEDIUM_RISK">🟡 Medium Risk Attendance Alert</option>
+            <option value="ACADEMIC_INTERVENTION">🔵 Mandatory Remedial & Peer Tutoring</option>
+            <option value="GENERAL">⚪ General Academic Notice</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-white small">Notification Title</label>
+          <input type="text" name="title" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Mandatory Parent-Teacher Conference" required>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label text-white small">Message / Interventions Summary</label>
+          <textarea name="message" class="form-control bg-dark text-white border-secondary" rows="4" placeholder="Detail the risk factors and required action steps..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 fw-bold">
+          <i class="bi bi-send me-1"></i> Dispatch Parent & Student Alert
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Side: Recent Dispatched Alerts -->
+  <div class="col-lg-6">
+    <div class="card-glass p-4 rounded-4 border border-secondary border-opacity-25 h-100">
+      <h5 class="fw-bold text-white mb-4"><i class="bi bi-clock-history text-info me-2"></i>Recent Issued Alerts</h5>
+
+      <div class="d-flex flex-column gap-3 overflow-auto" style="max-height: 480px;">
+        {% for n in all_notifications %}
+        <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="badge bg-secondary text-white">{{ n.alert_type }}</span>
+            <small class="text-muted">{{ n.created_at }}</small>
+          </div>
+          <div class="fw-bold text-white small">{{ n.title }}</div>
+          <div class="text-muted small mb-2">{{ n.message }}</div>
+          <div class="text-primary small fw-semibold">Issued by: {{ n.sender_role }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

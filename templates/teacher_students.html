@@ -1,0 +1,64 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Students & Risk Intelligence - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">Student Performance & Risk Intelligence</h1>
+    <p class="text-muted small mb-0">Monitor student performance vectors and AI risk classifications</p>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="glass-card p-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('teacher_students') }}" class="btn btn-sm {% if not filter_risk %}btn-primary{% else %}btn-outline-secondary text-light{% endif %} rounded-pill">All Students</a>
+    <a href="{{ url_for('teacher_students', risk='high') }}" class="btn btn-sm {% if filter_risk == 'high' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill">🔴 High Risk</a>
+    <a href="{{ url_for('teacher_students', risk='medium') }}" class="btn btn-sm {% if filter_risk == 'medium' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %} rounded-pill">🟡 Medium Risk</a>
+    <a href="{{ url_for('teacher_students', risk='low') }}" class="btn btn-sm {% if filter_risk == 'low' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill">🟢 Low Risk</a>
+  </div>
+</div>
+
+<!-- Student Roster Grid -->
+<div class="row g-4">
+  {% for s in students %}
+  <div class="col-md-6 col-lg-4">
+    <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="badge-risk {{ s.risk_badge }} small">{{ s.risk_level }}</span>
+          <span class="badge bg-dark border border-secondary text-muted">{{ s.roll_no }}</span>
+        </div>
+        <h3 class="h5 text-white fw-bold my-2">{{ s.name }}</h3>
+        <p class="text-muted small mb-3">{{ s.email }}</p>
+
+        <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 mb-3">
+          <div class="row text-center g-2">
+            <div class="col-6 border-end border-secondary border-opacity-25">
+              <div class="small text-muted">Attendance</div>
+              <div class="fw-bold {% if s.att_pct < 75 %}text-danger{% else %}text-success{% endif %}">{{ s.att_pct }}%</div>
+            </div>
+            <div class="col-6">
+              <div class="small text-muted">Overall Score</div>
+              <div class="fw-bold text-white">{{ s.overall_score }}%</div>
+            </div>
+          </div>
+        </div>
+
+        {% if s.weak_subjects %}
+        <div class="small text-danger mb-3">
+          <strong>Weak Subjects:</strong>
+          {% for w in s.weak_subjects %}{{ w.course_name }} ({{ w.score }}%){% if not loop.last %}, {% endif %}{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <a href="{{ url_for('teacher_student_detail', student_id=s.id) }}" class="btn btn-outline-primary w-100 rounded-3">
+        <i class="bi bi-cpu-fill me-1"></i> View Detailed AI Analysis
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

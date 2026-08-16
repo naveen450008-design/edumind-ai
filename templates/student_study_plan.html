@@ -1,0 +1,105 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}AI Personalized Study Plan - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h3 class="fw-bold text-white mb-1">
+      <i class="bi bi-journal-check text-info me-2"></i>Generate My AI Study Plan
+    </h3>
+    <p class="text-muted small mb-0">Personalized weekly study regimen tailored to your weak subjects and academic risk factors.</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-info bg-opacity-25 text-info px-3 py-2 rounded-pill fw-bold">
+      <i class="bi bi-bullseye me-1"></i> Completion: {{ pct_completed }}% ({{ completed_count }}/{{ total_count }} Tasks)
+    </span>
+  </div>
+</div>
+
+<!-- Progress Bar -->
+<div class="card-glass p-3 rounded-4 mb-4 border border-secondary border-opacity-25">
+  <div class="d-flex justify-content-between text-white small mb-1">
+    <span>Weekly Target Progress</span>
+    <span class="fw-bold text-info">{{ pct_completed }}% Completed</span>
+  </div>
+  <div class="progress" style="height: 10px;">
+    <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ pct_completed }}%;"></div>
+  </div>
+</div>
+
+<!-- Weekly Schedule Cards -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card-glass p-4 rounded-4 border border-secondary border-opacity-25">
+      <h5 class="fw-bold text-white mb-4"><i class="bi bi-calendar3 text-primary me-2"></i>Weekly Practice Tasks</h5>
+
+      <div class="table-responsive">
+        <table class="table custom-table">
+          <thead>
+            <tr>
+              <th style="width: 5%;">Status</th>
+              <th style="width: 15%;">Day</th>
+              <th style="width: 25%;">Subject</th>
+              <th style="width: 15%;">Duration</th>
+              <th>Task Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for task in study_tasks %}
+            <tr id="task-row-{{ task.id }}" class="{% if task.is_completed %}text-decoration-line-through opacity-50{% endif %}">
+              <td class="text-center">
+                <input class="form-check-input fs-5" type="checkbox" onchange="toggleTask({{ task.id }}, this.checked)" {% if task.is_completed %}checked{% endif %}>
+              </td>
+              <td class="fw-bold text-primary">{{ task.day_name }}</td>
+              <td class="fw-semibold text-white">{{ task.subject_name }}</td>
+              <td><span class="badge bg-secondary">{{ task.duration_minutes }} mins</span></td>
+              <td class="small text-light">{{ task.task_description }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priority Focus & Gamification Badges -->
+  <div class="col-lg-4">
+    <div class="card-glass p-4 rounded-4 border border-secondary border-opacity-25 mb-4">
+      <h5 class="fw-bold text-white mb-3"><i class="bi bi-stars text-warning me-2"></i>Priority Focus Subjects</h5>
+      {% if perf.weak_subjects %}
+        <div class="d-flex flex-column gap-2 mb-3">
+          {% for w in perf.weak_subjects %}
+          <div class="p-3 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-bold text-white small">{{ w.course_name }}</div>
+              <div class="text-muted small">Score: {{ w.score }}%</div>
+            </div>
+            <span class="badge bg-danger">Priority 1</span>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-3 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 text-success small mb-3">
+          <i class="bi bi-check-circle-fill me-1"></i> All subjects are in strong standing (&ge; 60%).
+        </div>
+      {% endif %}
+
+      <div class="pt-3 border-top border-secondary border-opacity-25">
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-award-fill text-warning me-2"></i>Gamification Badges</h6>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="badge bg-primary bg-opacity-25 text-primary p-2 border border-primary border-opacity-25" title="Maintained 7 days of platform activity">
+            <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> 7-Day Streak
+          </span>
+          <span class="badge bg-success bg-opacity-25 text-success p-2 border border-success border-opacity-25" title="Completed 5 study tasks">
+            <i class="bi bi-check-all me-1"></i> Assignment Master
+          </span>
+          <span class="badge bg-purple bg-opacity-25 text-info p-2 border border-info border-opacity-25" title="Reduced risk tier">
+            <i class="bi bi-graph-up-arrow me-1"></i> Risk Improver
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

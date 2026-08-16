@@ -1,0 +1,138 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Parent Command Center - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<!-- Parent Header Banner -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold text-white mb-1">
+      <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Parent Academic Portal & Monitoring Console
+    </h2>
+    <p class="text-muted small mb-0">
+      Parent/Guardian View for <strong>{{ perf.student_name }}</strong> (Roll No: {{ perf.roll_no }} | Department: {{ perf.department }})
+    </p>
+  </div>
+  <div>
+    <span class="badge-risk {{ risk.risk_badge }} fs-6">
+      <i class="bi bi-shield-exclamation"></i> {{ risk.risk_level }} (Score: {{ risk.risk_score }}/100)
+    </span>
+  </div>
+</div>
+
+<!-- Prominent AI Insight Card -->
+<div class="alert alert-primary p-4 rounded-4 mb-4 border-start border-4 border-primary shadow-sm bg-dark bg-opacity-75">
+  <div class="d-flex align-items-start gap-3">
+    <div class="bg-primary text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+      <i class="bi bi-cpu-fill fs-4"></i>
+    </div>
+    <div>
+      <h5 class="fw-bold text-white mb-1">EduMind AI Guardian Summary</h5>
+      <p class="text-light mb-0">{{ risk.ai_insight }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Child Metric Scorecard Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Academic Health Score</div>
+      <div class="display-6 fw-bold text-success my-1">{{ risk.health_score }}/100</div>
+      <div class="small text-muted">Overall Wellness</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card {% if perf.att_pct < 75 %}high-risk{% endif %}">
+      <div class="text-muted small fw-semibold text-uppercase">Attendance Rate</div>
+      <div class="display-6 fw-bold text-white my-1">{{ perf.att_pct }}%</div>
+      <div class="small {% if perf.att_pct < 75 %}text-danger{% else %}text-success{% endif %}">
+        {% if perf.att_pct < 75 %}Requirement: &ge; 75%{% else %}Good Standing{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Overall Weighted Score</div>
+      <div class="display-6 fw-bold text-primary my-1">{{ perf.overall_score }}%</div>
+      <div class="small text-info fw-semibold">{{ perf.perf_category }}</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Final Exam Marks</div>
+      <div class="display-6 fw-bold text-white my-1">{{ perf.final_score }}%</div>
+      <div class="small text-muted">40% Weighted Score</div>
+    </div>
+  </div>
+</div>
+
+<!-- Grid Row: Explainable Root Cause & Teacher Alerts -->
+<div class="row g-4 mb-4">
+  <!-- Explainable AI Root Cause -->
+  <div class="col-lg-6">
+    <div class="glass-card p-4 rounded-4 border border-secondary border-opacity-25 h-100">
+      <h5 class="fw-bold text-white mb-3">
+        <i class="bi bi-search text-warning me-2"></i>Academic Diagnosis & Root Cause
+      </h5>
+
+      {% if risk.root_cause_analysis %}
+      <div class="p-3 bg-dark bg-opacity-50 rounded-3 mb-3 border border-secondary border-opacity-25">
+        <div class="text-muted small mb-1">Primary Academic Risk Cause:</div>
+        <div class="fw-bold text-danger">{{ risk.root_cause_analysis.primary_cause }}</div>
+      </div>
+
+      <div class="mb-3">
+        <div class="text-muted small mb-2">Secondary Contributing Factors:</div>
+        <ul class="list-unstyled mb-0">
+          {% for sec in risk.root_cause_analysis.secondary_causes %}
+          <li class="small text-light mb-1"><i class="bi bi-dot text-warning fs-5 align-middle"></i> {{ sec }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="pt-3 border-top border-secondary border-opacity-25">
+        <h6 class="fw-bold text-white small mb-2"><i class="bi bi-check2-circle text-success me-1"></i>Recommended Parent Actions:</h6>
+        <ul class="mb-0 text-muted small ps-3">
+          <li>Encourage completion of daily study plan tasks.</li>
+          <li>Ensure attendance in morning lectures to cross 75%.</li>
+          <li>Review remedial tutoring progress with subject teachers.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teacher Interventions & Alerts -->
+  <div class="col-lg-6">
+    <div class="glass-card p-4 rounded-4 border border-secondary border-opacity-25 h-100">
+      <h5 class="fw-bold text-white mb-3">
+        <i class="bi bi-bell-fill text-warning me-2"></i>Teacher Alerts & Remedial Interventions
+      </h5>
+
+      {% if interventions %}
+        <div class="d-flex flex-column gap-3">
+          {% for item in interventions %}
+          <div class="p-3 rounded-3 border border-secondary border-opacity-25 bg-dark bg-opacity-50">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="badge bg-primary text-white">{{ item.status }}</span>
+              <small class="text-muted">{{ item.created_at }}</small>
+            </div>
+            <div class="fw-bold text-white small">{{ item.title }}</div>
+            <div class="text-muted small mb-2">{{ item.description }}</div>
+            <div class="p-2 rounded bg-primary bg-opacity-10 border border-primary border-opacity-25 text-primary small">
+              <i class="bi bi-exclamation-circle me-1"></i> <strong>Required Action:</strong> {{ item.action_required }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-shield-check fs-1 text-success opacity-50 d-block mb-2"></i>
+          <p class="mb-0 small">No active interventions or risk alerts issued by teachers.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

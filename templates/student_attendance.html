@@ -1,0 +1,94 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Attendance Records - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">Attendance Tracker</h1>
+    <p class="text-muted small mb-0">Track subject-wise and date-wise lecture attendance</p>
+  </div>
+  <div class="glass-card px-4 py-2 text-center">
+    <div class="text-muted small fw-semibold text-uppercase">Overall Attendance</div>
+    <div class="h4 fw-bold {% if perf.att_pct < 75 %}text-danger{% else %}text-success{% endif %} mb-0">
+      {{ perf.att_pct }}%
+    </div>
+  </div>
+</div>
+
+<!-- Subject Attendance Summary -->
+<div class="glass-card p-4 mb-4">
+  <h3 class="h5 text-white fw-bold mb-3">
+    <i class="bi bi-pie-chart-fill text-primary me-2"></i> Course Attendance Breakdown
+  </h3>
+  <div class="table-responsive">
+    <table class="table custom-table">
+      <thead>
+        <tr>
+          <th>Course Code</th>
+          <th>Course Name</th>
+          <th>Total Classes</th>
+          <th>Present</th>
+          <th>Absent</th>
+          <th>Percentage</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in course_att %}
+        <tr>
+          <td class="fw-bold text-primary">{{ att.course_code }}</td>
+          <td class="text-white">{{ att.course_name }}</td>
+          <td>{{ att.total }}</td>
+          <td class="text-success fw-bold">{{ att.present }}</td>
+          <td class="text-danger fw-bold">{{ att.absent }}</td>
+          <td class="fw-bold text-white">{{ att.pct }}%</td>
+          <td>
+            {% if att.pct < 75 %}
+              <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">🔴 Low Attendance</span>
+            {% else %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success">🟢 Eligible</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detailed Logs -->
+<div class="glass-card p-4">
+  <h3 class="h5 text-white fw-bold mb-3">
+    <i class="bi bi-clock-history text-info me-2"></i> Recent Attendance Log
+  </h3>
+  <div class="table-responsive">
+    <table class="table custom-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Course Code</th>
+          <th>Course Name</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="text-muted">{{ log.date }}</td>
+          <td class="fw-bold text-primary">{{ log.course_code }}</td>
+          <td class="text-white">{{ log.course_name }}</td>
+          <td>
+            {% if log.status == 'Present' %}
+              <span class="badge bg-success text-white">Present</span>
+            {% else %}
+              <span class="badge bg-danger text-white">Absent</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

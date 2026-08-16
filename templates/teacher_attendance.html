@@ -1,0 +1,65 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Record Attendance - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">Record Class Attendance</h1>
+    <p class="text-muted small mb-0">Select course and date to record student attendance</p>
+  </div>
+</div>
+
+<div class="glass-card p-4">
+  <form action="{{ url_for('teacher_record_attendance') }}" method="POST">
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="form-label text-light fw-semibold small">Select Course</label>
+        <select class="form-select bg-dark text-white border-secondary" name="course_id" required>
+          {% for course in courses %}
+            <option value="{{ course.id }}">{{ course.course_code }} - {{ course.course_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-light fw-semibold small">Date</label>
+        <input type="date" class="form-control bg-dark text-white border-secondary" name="att_date" value="{{ today }}" required>
+      </div>
+    </div>
+
+    <h3 class="h5 text-white fw-bold mb-3">Student Roster</h3>
+    <div class="table-responsive mb-4">
+      <table class="table custom-table">
+        <thead>
+          <tr>
+            <th>Roll No</th>
+            <th>Student Name</th>
+            <th>Attendance Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+          <tr>
+            <td class="text-muted">{{ s.roll_no }}</td>
+            <td class="fw-bold text-white">{{ s.name }}</td>
+            <td>
+              <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="status_{{ s.id }}" id="present_{{ s.id }}" value="Present" checked>
+                <label class="btn btn-outline-success btn-sm" for="present_{{ s.id }}">Present</label>
+
+                <input type="radio" class="btn-check" name="status_{{ s.id }}" id="absent_{{ s.id }}" value="Absent">
+                <label class="btn btn-outline-danger btn-sm" for="absent_{{ s.id }}">Absent</label>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm">
+      <i class="bi bi-save me-1"></i> Save Attendance Records
+    </button>
+  </form>
+</div>
+{% endblock %}

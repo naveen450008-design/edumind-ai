@@ -1,0 +1,279 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Student Dashboard - EduMind AI Platform{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">Welcome back, {{ perf.student_name }}! 👋</h1>
+    <p class="text-muted small mb-0">Roll No: <strong>{{ perf.roll_no }}</strong> | Department: <strong>{{ perf.department }}</strong></p>
+  </div>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <a href="{{ url_for('student_study_plan') }}" class="btn btn-outline-info btn-sm">
+      <i class="bi bi-journal-check me-1"></i> AI Study Plan
+    </a>
+    <a href="{{ url_for('student_grade_predictor') }}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-calculator me-1"></i> Grade Predictor
+    </a>
+    <a href="{{ url_for('student_export_report') }}" target="_blank" class="btn btn-outline-warning btn-sm">
+      <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF Report
+    </a>
+    <span class="badge-risk {{ risk.risk_badge }} fs-6">
+      <i class="bi bi-shield-exclamation"></i> {{ risk.risk_level }} (Risk Score: {{ risk.risk_score }}/100)
+    </span>
+  </div>
+</div>
+
+<!-- Prominent EduMind AI Insight Banner -->
+<div class="glass-card p-4 rounded-4 mb-4 border-primary border-opacity-50 position-relative overflow-hidden">
+  <div class="d-flex align-items-start gap-3">
+    <div class="bg-primary text-white rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+      <i class="bi bi-cpu-fill fs-3"></i>
+    </div>
+    <div class="flex-grow-1">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <h5 class="fw-bold text-white mb-0">EduMind AI Academic Insight</h5>
+        <span class="badge bg-primary bg-opacity-25 text-primary">Real-Time Intelligence</span>
+      </div>
+      <p class="text-light mb-0 fs-6" style="line-height: 1.6;">
+        "{{ risk.ai_insight }}"
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Upgraded KPI Scorecards Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card low-risk">
+      <div class="text-muted small fw-semibold text-uppercase">Academic Health Score</div>
+      <div class="display-6 fw-bold text-success my-1">{{ risk.health_score }}/100</div>
+      <div class="small text-muted">Overall Wellness Gauge</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card {% if risk.risk_code in ['high', 'critical'] %}high-risk{% elif risk.risk_code == 'medium' %}med-risk{% else %}low-risk{% endif %}">
+      <div class="text-muted small fw-semibold text-uppercase">Academic Risk Score</div>
+      <div class="display-6 fw-bold text-white my-1">{{ risk.risk_score }}/100</div>
+      <div class="small fw-semibold" style="color: {{ risk.status_color }};">
+        {{ risk.risk_level }}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card {% if perf.att_pct < 75 %}high-risk{% endif %}">
+      <div class="text-muted small fw-semibold text-uppercase">Attendance Rate</div>
+      <div class="display-6 fw-bold text-white my-1">{{ perf.att_pct }}%</div>
+      <div class="small {% if perf.att_pct < 75 %}text-danger{% else %}text-success{% endif %}">
+        {% if perf.att_pct < 75 %}Below 75% Cutoff{% else %}Good Standing{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Overall Performance</div>
+      <div class="display-6 fw-bold text-primary my-1">{{ perf.overall_score }}%</div>
+      <div class="small text-info fw-semibold">{{ perf.perf_category }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Explainable AI Root Cause Analysis Section -->
+<div class="glass-card p-4 rounded-4 mb-4 border border-secondary border-opacity-25">
+  <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary border-opacity-25 pb-3">
+    <h4 class="h5 text-white fw-bold mb-0">
+      <i class="bi bi-search text-warning me-2"></i>Why is This Student at Risk? (AI Root Cause Diagnosis)
+    </h4>
+    <span class="badge bg-secondary">Explainable AI</span>
+  </div>
+
+  {% if risk.root_cause_analysis %}
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="p-3 bg-dark bg-opacity-50 rounded-3 mb-3 border border-danger border-opacity-25">
+        <div class="text-muted small mb-1">Primary Academic Risk Cause</div>
+        <div class="fw-bold text-danger fs-6">{{ risk.root_cause_analysis.primary_cause }}</div>
+      </div>
+
+      <div class="mb-3">
+        <div class="text-muted small mb-2 fw-semibold">Secondary Risk Factors:</div>
+        <ul class="list-group list-group-flush bg-transparent">
+          {% for sec in risk.root_cause_analysis.secondary_causes %}
+          <li class="list-group-item bg-transparent text-light border-secondary border-opacity-25 px-0 py-1 small">
+            <i class="bi bi-arrow-right-short text-warning me-1"></i> {{ sec }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="p-3 bg-dark bg-opacity-50 rounded-3 mb-3 border border-secondary border-opacity-25">
+        <div class="text-muted small mb-2 fw-semibold">Quantitative Empirical Evidence:</div>
+        <div class="row g-2">
+          {% for k, v in risk.root_cause_analysis.evidence.items() %}
+          <div class="col-6">
+            <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+              <span class="text-muted small d-block" style="font-size: 0.75rem;">{{ k }}</span>
+              <span class="fw-bold text-white small">{{ v }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <div class="text-muted small mb-2 fw-semibold"><i class="bi bi-check-circle-fill text-success me-1"></i>AI Recommended Action Plan:</div>
+        <div class="d-flex flex-column gap-1">
+          {% for action in risk.root_cause_analysis.recommended_actions %}
+          <div class="small text-light bg-primary bg-opacity-10 p-2 rounded border border-primary border-opacity-25">
+            <strong>Action {{ loop.index }}:</strong> {{ action }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Grid Row: Subject Performance & EduMind AI Copilot Chatbot -->
+<div class="row g-4 mb-4">
+  <!-- Subject Breakdown -->
+  <div class="col-lg-7">
+    <div class="glass-card p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h5 text-white fw-bold mb-0">
+          <i class="bi bi-bar-chart-steps text-info me-2"></i> Subject Performance Breakdown
+        </h3>
+        <a href="{{ url_for('student_courses') }}" class="small text-primary text-decoration-none">View All Courses <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="d-flex flex-column gap-3">
+        {% for sub in perf.subject_performance %}
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-light fw-semibold small">
+                {{ sub.status_icon }} {{ sub.course_name }} ({{ sub.course_code }})
+              </span>
+              <span class="fw-bold text-white small">{{ sub.score }}%</span>
+            </div>
+            <div class="progress bg-dark border border-secondary border-opacity-25" style="height: 8px;">
+              <div class="progress-bar {% if sub.score < 60 %}bg-danger{% elif sub.score < 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                   role="progressbar" style="width: {{ sub.score }}%;"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- EduMind AI Copilot Chatbot Widget -->
+  <div class="col-lg-5">
+    <div class="glass-card p-4 h-100 d-flex flex-column">
+      <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-secondary border-opacity-25 pb-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+            <i class="bi bi-robot"></i>
+          </div>
+          <div>
+            <h3 class="h6 text-white fw-bold mb-0">EduMind AI Copilot</h3>
+            <span class="text-success small" style="font-size: 0.75rem;">● Connected to student metrics</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggested Question Chips -->
+      <div class="mb-3 d-flex flex-wrap gap-1.5">
+        <button class="chat-quick-btn" onclick="askQuickQuestion('Why am I at risk?')">Why am I at risk?</button>
+        <button class="chat-quick-btn" onclick="askQuickQuestion('How can I improve my score?')">How can I improve my score?</button>
+        <button class="chat-quick-btn" onclick="askQuickQuestion('Create my study plan')">Create my study plan</button>
+        <button class="chat-quick-btn" onclick="askQuickQuestion('Which subject needs improvement?')">Which subject needs improvement?</button>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div class="chat-container bg-dark bg-opacity-60 rounded-3 border border-secondary border-opacity-25 mb-3" id="chatContainer">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-msg bot">
+            Hello {{ perf.student_name }}! I am your EduMind AI Copilot. Ask me anything about your academic health, study plan, or marks!
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Box -->
+      <div class="input-group">
+        <input type="text" class="form-control bg-dark text-white border-secondary rounded-start-3" id="chatInput" placeholder="Ask EduMind Copilot..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+        <button class="btn btn-primary rounded-end-3" onclick="sendChatMessage()">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Performance Chart Row -->
+<div class="row">
+  <div class="col-12">
+    <div class="glass-card p-4">
+      <h3 class="h5 text-white fw-bold mb-3">
+        <i class="bi bi-graph-up-arrow text-warning me-2"></i> Academic Performance Trend Analytics
+      </h3>
+      <div style="height: 250px;">
+        <canvas id="studentTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('studentTrendChart').getContext('2d');
+  
+  const labels = ['Assignment Avg', 'Internal Exams Avg', 'Final Exam Avg', 'Overall Score'];
+  const dataValues = [
+    {{ perf.assign_score }},
+    {{ perf.internal_score }},
+    {{ perf.final_score }},
+    {{ perf.overall_score }}
+  ];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Score Percentage (%)',
+        data: dataValues,
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99, 102, 241, 0.15)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#8b5cf6',
+        pointRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          grid: { color: 'rgba(255, 255, 255, 0.08)' },
+          ticks: { color: '#94a3b8' }
+        },
+        x: {
+          grid: { color: 'rgba(255, 255, 255, 0.08)' },
+          ticks: { color: '#94a3b8' }
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}What-If Grade & Risk Predictor - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h3 class="fw-bold text-white mb-1">
+      <i class="bi bi-calculator text-primary me-2"></i>What-If Grade & Risk Predictor
+    </h3>
+    <p class="text-muted small mb-0">Simulate target test scores, target attendance, and goal scores to predict your academic risk trajectory.</p>
+  </div>
+  <a href="{{ url_for('student_export_report') }}" target="_blank" class="btn btn-outline-warning btn-sm">
+    <i class="bi bi-file-earmark-pdf me-1"></i> Print Diagnostic Report
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Left Side: Interactive Sliders & Target Input -->
+  <div class="col-lg-6">
+    <div class="card-glass p-4 rounded-4 border border-secondary border-opacity-25 h-100">
+      <h5 class="fw-bold text-white mb-4"><i class="bi bi-sliders text-info me-2"></i>Adjust Target Academic Metrics</h5>
+
+      <form id="predictor-form">
+        <!-- Target Goal Score -->
+        <div class="mb-4 p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25">
+          <div class="d-flex justify-content-between text-white mb-1">
+            <label class="form-label mb-0 fw-bold">Target Overall Score Goal</label>
+            <span class="fw-bold text-warning fs-5" id="val-target-goal">80%</span>
+          </div>
+          <input type="range" class="form-range" id="input-target-goal" min="50" max="100" step="1" value="80">
+          <div class="small text-muted">Set your desired final grade target to calculate required exam score delta.</div>
+        </div>
+
+        <!-- Attendance Slider -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between text-white mb-1">
+            <label class="form-label mb-0">Target Attendance Rate</label>
+            <span class="fw-bold text-primary" id="val-att">{{ perf.att_pct }}%</span>
+          </div>
+          <input type="range" class="form-range" id="input-att" min="40" max="100" step="1" value="{{ perf.att_pct }}">
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+            <span>Current: {{ perf.att_pct }}%</span>
+            <span>Requirement: &ge;75%</span>
+          </div>
+        </div>
+
+        <!-- Assignment Score Slider -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between text-white mb-1">
+            <label class="form-label mb-0">Target Assignment Average</label>
+            <span class="fw-bold text-info" id="val-assign">{{ perf.assign_score }}%</span>
+          </div>
+          <input type="range" class="form-range" id="input-assign" min="0" max="100" step="1" value="{{ perf.assign_score }}">
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+            <span>Current: {{ perf.assign_score }}%</span>
+            <span>Weight: 20%</span>
+          </div>
+        </div>
+
+        <!-- Internal Exam Slider -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between text-white mb-1">
+            <label class="form-label mb-0">Target Internal Exams Avg</label>
+            <span class="fw-bold text-warning" id="val-internal">{{ perf.internal_score }}%</span>
+          </div>
+          <input type="range" class="form-range" id="input-internal" min="0" max="100" step="1" value="{{ perf.internal_score }}">
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+            <span>Current: {{ perf.internal_score }}%</span>
+            <span>Weight: 20%</span>
+          </div>
+        </div>
+
+        <!-- Final Exam Slider -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between text-white mb-1">
+            <label class="form-label mb-0">Target Final Exam Mark</label>
+            <span class="fw-bold text-success" id="val-final">{{ perf.final_score }}%</span>
+          </div>
+          <input type="range" class="form-range" id="input-final" min="0" max="100" step="1" value="{{ perf.final_score }}">
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+            <span>Current: {{ perf.final_score }}%</span>
+            <span>Weight: 40%</span>
+          </div>
+        </div>
+      </form>
+
+      <button type="button" id="btn-reset" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset to Actual Metrics
+      </button>
+    </div>
+  </div>
+
+  <!-- Right Side: Predicted Outcomes & Comparison Chart -->
+  <div class="col-lg-6">
+    <div class="card-glass p-4 rounded-4 border border-secondary border-opacity-25 h-100 d-flex flex-column justify-content-between">
+      <div>
+        <h5 class="fw-bold text-white mb-3"><i class="bi bi-cpu-fill text-primary me-2"></i>Predicted Risk Outcome & Health</h5>
+
+        <!-- Risk Badge Container -->
+        <div class="p-4 rounded-3 text-center mb-3 border" id="risk-badge-box">
+          <div class="text-uppercase text-muted mb-1" style="font-size: 0.75rem;">Simulated Risk Tier</div>
+          <div class="fs-3 fw-bold mb-2" id="simulated-risk-label">--</div>
+          <div class="d-flex justify-content-center gap-2">
+            <span class="badge bg-secondary p-2" id="simulated-risk-score">Risk Score: --/100</span>
+            <span class="badge bg-success p-2" id="simulated-health-score">Health Score: --/100</span>
+          </div>
+        </div>
+
+        <!-- Target Delta Requirement Box -->
+        <div class="p-3 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 mb-3">
+          <div class="fw-bold text-warning mb-1 small"><i class="bi bi-bullseye me-1"></i>Target Goal Requirement Delta</div>
+          <div class="text-light small" id="target-delta-text">
+            Calculating score requirements for your goal...
+          </div>
+        </div>
+
+        <!-- Metric Details -->
+        <div class="p-3 bg-dark bg-opacity-50 rounded-3 mb-3 border border-secondary border-opacity-25">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted small">Predicted Composite Score</span>
+            <span class="fw-bold text-white fs-5" id="simulated-overall">--</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-primary" id="simulated-bar" role="progressbar" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Current vs Predicted vs Target Chart -->
+        <div class="p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25 mb-3">
+          <div class="text-muted small fw-semibold mb-2">CURRENT vs PREDICTED vs TARGET Goal</div>
+          <div style="height: 160px;">
+            <canvas id="comparisonChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-muted small border-top border-secondary border-opacity-25 pt-2">
+        <i class="bi bi-shield-check text-success me-1"></i> Formula: 20% Attendance + 20% Assignment + 20% Internal + 40% Final Exam
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let compChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const inputGoal = document.getElementById('input-target-goal');
+  const inputAtt = document.getElementById('input-att');
+  const inputAssign = document.getElementById('input-assign');
+  const inputInternal = document.getElementById('input-internal');
+  const inputFinal = document.getElementById('input-final');
+
+  const valGoal = document.getElementById('val-target-goal');
+  const valAtt = document.getElementById('val-att');
+  const valAssign = document.getElementById('val-assign');
+  const valInternal = document.getElementById('val-internal');
+  const valFinal = document.getElementById('val-final');
+
+  const actualAtt = {{ perf.att_pct }};
+  const actualAssign = {{ perf.assign_score }};
+  const actualInternal = {{ perf.internal_score }};
+  const actualFinal = {{ perf.final_score }};
+
+  // Init Chart
+  const ctx = document.getElementById('comparisonChart').getContext('2d');
+  compChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Current Score', 'Predicted Score', 'Target Goal'],
+      datasets: [{
+        label: 'Overall Score (%)',
+        data: [{{ perf.overall_score }}, {{ perf.overall_score }}, 80],
+        backgroundColor: ['rgba(99, 102, 241, 0.6)', 'rgba(14, 165, 233, 0.8)', 'rgba(245, 158, 11, 0.8)'],
+        borderColor: ['#6366f1', '#0ea5e9', '#f59e0b'],
+        borderWidth: 1.5,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  function updatePrediction() {
+    valGoal.innerText = inputGoal.value + '%';
+    valAtt.innerText = inputAtt.value + '%';
+    valAssign.innerText = inputAssign.value + '%';
+    valInternal.innerText = inputInternal.value + '%';
+    valFinal.innerText = inputFinal.value + '%';
+
+    fetch('/api/student/predict-grade', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        att: inputAtt.value,
+        assign: inputAssign.value,
+        internal: inputInternal.value,
+        final: inputFinal.value,
+        target_desired_score: inputGoal.value
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const pred = data.prediction;
+        const risk = pred.predicted_risk;
+        const overall = pred.predicted_overall;
+        
+        // Update Risk Badge
+        const box = document.getElementById('risk-badge-box');
+        box.className = `p-4 rounded-3 text-center mb-3 border ${risk.bg_class} bg-opacity-10 border-${risk.bg_class.replace('badge-risk-', '')}`;
+        
+        const label = document.getElementById('simulated-risk-label');
+        label.innerText = risk.status_label;
+        label.className = `fs-3 fw-bold mb-2 ${risk.text_class || ''}`;
+        label.style.color = risk.status_color;
+
+        document.getElementById('simulated-risk-score').innerText = `Risk Score: ${risk.risk_score}/100`;
+        document.getElementById('simulated-health-score').innerText = `Health Score: ${risk.health_score}/100`;
+        
+        document.getElementById('simulated-overall').innerText = overall + '%';
+        document.getElementById('simulated-bar').style.width = overall + '%';
+
+        // Target Delta Text
+        const delta = pred.required_final_delta;
+        const reqFinal = pred.required_final_for_target;
+        const deltaText = document.getElementById('target-delta-text');
+        
+        if (reqFinal <= 100) {
+          if (delta > 0) {
+            deltaText.innerHTML = `You need approximately <strong>+${delta}%</strong> in your Final Exam (minimum <strong>${reqFinal}%</strong>) to reach your target goal of <strong>${inputGoal.value}%</strong>.`;
+          } else {
+            deltaText.innerHTML = `Your current scores are already on track to achieve your target goal of <strong>${inputGoal.value}%</strong>! Maintain current attendance and exam performance.`;
+          }
+        } else {
+          deltaText.innerHTML = `Target goal of <strong>${inputGoal.value}%</strong> requires higher attendance or internal assignment scores to be mathematically achievable.`;
+        }
+
+        // Update Chart
+        compChart.data.datasets[0].data = [{{ perf.overall_score }}, overall, parseFloat(inputGoal.value)];
+        compChart.update();
+      }
+    });
+  }
+
+  [inputGoal, inputAtt, inputAssign, inputInternal, inputFinal].forEach(el => {
+    el.addEventListener('input', updatePrediction);
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function() {
+    inputGoal.value = 80;
+    inputAtt.value = actualAtt;
+    inputAssign.value = actualAssign;
+    inputInternal.value = actualInternal;
+    inputFinal.value = actualFinal;
+    updatePrediction();
+  });
+
+  // Initial call
+  updatePrediction();
+});
+</script>
+{% endblock %}

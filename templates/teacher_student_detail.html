@@ -1,0 +1,206 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Detailed AI Diagnosis - {{ perf.student_name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+  <div>
+    <a href="{{ url_for('teacher_students') }}" class="text-muted small text-decoration-none mb-2 d-inline-block">
+      <i class="bi bi-arrow-left me-1"></i> Back to Student Roster
+    </a>
+    <h1 class="h3 text-white fw-bold mb-1">Detailed AI Diagnosis: {{ perf.student_name }}</h1>
+    <p class="text-muted small mb-0">Roll Number: <strong>{{ perf.roll_no }}</strong> | Department: <strong>{{ perf.department }}</strong></p>
+  </div>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <button class="btn btn-primary btn-sm fw-bold" onclick="openInterventionModal({{ perf.student_id }}, '{{ perf.student_name|e }}')">
+      <i class="bi bi-person-workspace me-1"></i> Assign Intervention
+    </button>
+    <a href="{{ url_for('teacher_student_export_report', student_id=perf.student_id) }}" target="_blank" class="btn btn-outline-warning btn-sm">
+      <i class="bi bi-file-earmark-pdf me-1"></i> Export Official Report
+    </a>
+    <span class="badge-risk {{ risk.risk_badge }} fs-6">
+      <i class="bi bi-shield-exclamation"></i> {{ risk.risk_level }} (Risk Score: {{ risk.risk_score }}/100)
+    </span>
+  </div>
+</div>
+
+<!-- Header KPI Metrics Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Academic Health Score</div>
+      <div class="display-6 fw-bold text-success my-1">{{ risk.health_score }}/100</div>
+      <div class="small text-muted">Overall Wellness</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card {% if perf.att_pct < 75 %}high-risk{% endif %}">
+      <div class="text-muted small fw-semibold text-uppercase">Attendance</div>
+      <div class="display-6 fw-bold text-white my-1">{{ perf.att_pct }}%</div>
+      <div class="small {% if perf.att_pct < 75 %}text-danger{% else %}text-success{% endif %}">
+        {% if perf.att_pct < 75 %}Below 75% Threshold{% else %}Satisfactory{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Overall Score</div>
+      <div class="display-6 fw-bold text-primary my-1">{{ perf.overall_score }}%</div>
+      <div class="small text-info fw-semibold">{{ perf.perf_category }}</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Final Exam Score</div>
+      <div class="display-6 fw-bold text-white my-1">{{ perf.final_score }}%</div>
+      <div class="small text-muted">Internal: {{ perf.internal_score }}%</div>
+    </div>
+  </div>
+</div>
+
+<!-- Explainable AI Root Cause Analysis Box -->
+<div class="glass-card p-4 rounded-4 mb-4 border border-secondary border-opacity-25">
+  <h4 class="h5 text-white fw-bold mb-3">
+    <i class="bi bi-search text-warning me-2"></i>Explainable AI Root Cause Diagnosis
+  </h4>
+
+  {% if risk.root_cause_analysis %}
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="p-3 bg-dark bg-opacity-50 rounded-3 mb-3 border border-danger border-opacity-25">
+        <div class="text-muted small mb-1">Primary Academic Risk Cause</div>
+        <div class="fw-bold text-danger fs-6">{{ risk.root_cause_analysis.primary_cause }}</div>
+      </div>
+
+      <div class="mb-3">
+        <div class="text-muted small mb-2 fw-semibold">Secondary Contributing Factors:</div>
+        <ul class="list-group list-group-flush bg-transparent">
+          {% for sec in risk.root_cause_analysis.secondary_causes %}
+          <li class="list-group-item bg-transparent text-light border-secondary border-opacity-25 px-0 py-1 small">
+            <i class="bi bi-arrow-right-short text-warning me-1"></i> {{ sec }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="p-3 bg-dark bg-opacity-50 rounded-3 border border-secondary border-opacity-25 mb-3">
+        <div class="text-muted small mb-2 fw-semibold">Empirical Metric Evidence:</div>
+        <div class="row g-2">
+          {% for k, v in risk.root_cause_analysis.evidence.items() %}
+          <div class="col-6">
+            <div class="p-2 rounded bg-dark border border-secondary border-opacity-25">
+              <span class="text-muted small d-block" style="font-size: 0.75rem;">{{ k }}</span>
+              <span class="fw-bold text-white small">{{ v }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Grid Row: Recommendations & Subject Matrix -->
+<div class="row g-4 mb-4">
+  <!-- AI Interventions & Recommendations -->
+  <div class="col-lg-6">
+    <div class="glass-card p-4 h-100">
+      <h3 class="h5 text-white fw-bold mb-3">
+        <i class="bi bi-lightbulb-fill text-warning me-2"></i> Recommended Interventions
+      </h3>
+      <div class="d-flex flex-column gap-2">
+        {% for rec in recommendations %}
+          <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 small">
+            <strong class="text-{{ rec.color }} d-block mb-1"><i class="bi {{ rec.icon }} me-1"></i> {{ rec.category }}</strong>
+            <span class="text-muted">{{ rec.action }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Subject Matrix -->
+  <div class="col-lg-6">
+    <div class="glass-card p-4 h-100">
+      <h3 class="h5 text-white fw-bold mb-3">
+        <i class="bi bi-bar-chart-steps text-info me-2"></i> Subject Performance Matrix
+      </h3>
+      <div class="table-responsive">
+        <table class="table custom-table">
+          <thead>
+            <tr>
+              <th>Course Code</th>
+              <th>Course Name</th>
+              <th>Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in perf.subject_performance %}
+            <tr>
+              <td class="fw-bold text-primary">{{ sub.course_code }}</td>
+              <td class="text-white">{{ sub.course_name }}</td>
+              <td class="fw-bold text-white">{{ sub.score }}%</td>
+              <td>
+                <span class="badge {% if sub.score < 60 %}bg-danger{% elif sub.score < 75 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                  {{ sub.status_icon }} {{ sub.status_label }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Assign Intervention Modal -->
+<div class="modal fade" id="interventionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-white border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title fw-bold text-white"><i class="bi bi-person-workspace text-primary me-2"></i>Assign Intervention</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('api_teacher_assign_intervention') }}" method="POST">
+        <div class="modal-body">
+          <input type="hidden" id="modalStudentId" name="student_id" value="{{ perf.student_id }}">
+          <div class="mb-3">
+            <label class="form-label small text-muted">Target Student</label>
+            <input type="text" value="{{ perf.student_name }}" class="form-control bg-dark text-white border-secondary" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-muted">Intervention Title</label>
+            <input type="text" name="title" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Mathematics Intensive Peer Mentoring" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-muted">Intervention Details</label>
+            <textarea name="description" class="form-control bg-dark text-white border-secondary" rows="3" placeholder="Describe the academic action plan..." required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-muted">Required Action Item for Student & Parent</label>
+            <input type="text" name="action_required" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Attend Tuesday & Thursday tutoring sessions" required>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm fw-bold">Dispatch Intervention & Alert</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openInterventionModal(studentId, studentName) {
+  const modal = new bootstrap.Modal(document.getElementById('interventionModal'));
+  modal.show();
+}
+</script>
+{% endblock %}

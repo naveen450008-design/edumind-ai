@@ -1,0 +1,49 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}My Enrolled Courses - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">My Enrolled Courses</h1>
+    <p class="text-muted small mb-0">Academic Year 2025-2026 | Semester 4</p>
+  </div>
+  <span class="badge bg-primary bg-opacity-25 text-primary fs-6 px-3 py-2">
+    5 Total Courses
+  </span>
+</div>
+
+<div class="row g-4">
+  {% for course in courses %}
+  <div class="col-md-6 col-lg-4">
+    <div class="glass-card h-100 p-4 d-flex flex-column justify-content-between">
+      <div>
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <span class="badge bg-primary text-white fw-bold">{{ course.course_code }}</span>
+          <span class="badge bg-secondary bg-opacity-25 text-light">{{ course.credits }} Credits</span>
+        </div>
+        <h3 class="h5 text-white fw-bold mb-2">{{ course.course_name }}</h3>
+        <p class="text-muted small mb-3">Department: {{ course.department }}</p>
+        
+        <div class="p-3 rounded-3 bg-dark border border-secondary border-opacity-25 mb-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-person-badge text-info fs-5"></i>
+            <div>
+              <div class="text-light fw-semibold small">{{ course.teacher_name }}</div>
+              <div class="text-muted" style="font-size: 0.75rem;">Faculty Instructor</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+        <span class="text-muted small">Score: <strong>{{ course.current_score }}%</strong></span>
+        <span class="badge {% if course.current_score < 60 %}bg-danger{% elif course.current_score < 75 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+          {% if course.current_score < 60 %}🔴 Weak{% elif course.current_score < 75 %}🟡 Average{% else %}🟢 Strong{% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

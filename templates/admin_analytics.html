@@ -1,0 +1,84 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}AI Analytics & Institution Intelligence - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">AI Analytics & Risk Intelligence Report</h1>
+    <p class="text-muted small mb-0">Institution-wide Academic Data Diagnostics & Preventive Intervention Insights</p>
+  </div>
+</div>
+
+<!-- AI Intelligence Diagnostic Banner -->
+<div class="glass-card p-4 mb-4 border-primary border-opacity-25">
+  <div class="row align-items-center">
+    <div class="col-md-8">
+      <h3 class="h5 text-white fw-bold mb-2">
+        <i class="bi bi-cpu-fill text-primary me-2"></i> Institutional Academic Intelligence Summary
+      </h3>
+      <p class="text-light mb-0" style="line-height: 1.6;">
+        Across <strong>{{ total_students }} registered students</strong>, the machine learning classifier identified: 
+        <span class="badge bg-danger ms-1 me-1">{{ high_risk_count }} High Risk</span>, 
+        <span class="badge bg-warning text-dark me-1">{{ med_risk_count }} Medium Risk</span>, and 
+        <span class="badge bg-success">{{ low_risk_count }} Low Risk</span>. 
+        Overall institution attendance stands at <strong>{{ avg_attendance }}%</strong> with an average performance composite score of <strong>{{ avg_performance }}%</strong>.
+      </p>
+    </div>
+    <div class="col-md-4 text-end mt-3 mt-md-0">
+      <button class="btn btn-outline-light rounded-3 fw-semibold" onclick="window.print()">
+        <i class="bi bi-printer-fill me-1"></i> Print / Export Report
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Surveillance List -->
+<div class="glass-card p-4 mb-4">
+  <h3 class="h5 text-white fw-bold mb-3">
+    <i class="bi bi-shield-exclamation text-warning me-2"></i> Comprehensive Student Risk Audit
+  </h3>
+  <div class="table-responsive">
+    <table class="table custom-table">
+      <thead>
+        <tr>
+          <th>Student Name</th>
+          <th>Roll No</th>
+          <th>Attendance</th>
+          <th>Assignment Avg</th>
+          <th>Final Exam Score</th>
+          <th>Overall Score</th>
+          <th>Risk Level</th>
+          <th>Primary Action Item</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in all_student_evals %}
+        <tr>
+          <td class="fw-bold text-white">{{ s.name }}</td>
+          <td class="text-muted">{{ s.roll_no }}</td>
+          <td class="fw-bold {% if s.att_pct < 75 %}text-danger{% else %}text-success{% endif %}">{{ s.att_pct }}%</td>
+          <td class="text-white">{{ s.assign_score }}%</td>
+          <td class="text-white">{{ s.final_score }}%</td>
+          <td class="fw-bold text-white fs-6">{{ s.overall_score }}%</td>
+          <td>
+            <span class="badge-risk {{ s.risk_badge }} small">
+              {{ s.risk_level }}
+            </span>
+          </td>
+          <td class="small text-muted">
+            {% if s.risk_code == 'high' %}
+              Needs Faculty Consultation & Attendance Catchup
+            {% elif s.risk_code == 'medium' %}
+              Continuous Assignment & Exam Prep
+            {% else %}
+              Maintain High Performance
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

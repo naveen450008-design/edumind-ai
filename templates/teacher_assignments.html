@@ -1,0 +1,92 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Teacher Assignments - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">Assignment & Continuous Evaluation</h1>
+    <p class="text-muted small mb-0">Create new assignment tasks and grade student submissions</p>
+  </div>
+  <button class="btn btn-primary rounded-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#createAssignmentModal">
+    <i class="bi bi-plus-circle me-1"></i> Create New Assignment
+  </button>
+</div>
+
+<!-- Modal: Create Assignment -->
+<div class="modal fade" id="createAssignmentModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-white border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">Create Course Assignment</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('teacher_create_assignment') }}" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">Course</label>
+            <select class="form-select bg-dark text-white border-secondary" name="course_id" required>
+              {% for c in courses %}
+                <option value="{{ c.id }}">{{ c.course_code }} - {{ c.course_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">Assignment Title</label>
+            <input type="text" class="form-control bg-dark text-white border-secondary" name="title" placeholder="e.g. Assignment 2: Graph Algorithms" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-semibold">Description / Prompt</label>
+            <textarea class="form-control bg-dark text-white border-secondary" name="description" rows="3" placeholder="Provide problem statement..." required></textarea>
+          </div>
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label text-muted small fw-semibold">Max Marks</label>
+              <input type="number" class="form-control bg-dark text-white border-secondary" name="max_marks" value="100" required>
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label text-muted small fw-semibold">Due Date</label>
+              <input type="date" class="form-control bg-dark text-white border-secondary" name="due_date" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold">Publish Assignment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Assignments List -->
+<div class="glass-card p-4">
+  <h3 class="h5 text-white fw-bold mb-3">Active Assignments</h3>
+  <div class="table-responsive">
+    <table class="table custom-table">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Assignment Title</th>
+          <th>Max Marks</th>
+          <th>Due Date</th>
+          <th>Submissions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in assignments %}
+        <tr>
+          <td class="fw-bold text-primary">{{ a.course_code }}</td>
+          <td class="text-white fw-semibold">{{ a.title }}</td>
+          <td class="text-muted">{{ a.max_marks }}</td>
+          <td class="text-warning">{{ a.due_date }}</td>
+          <td>
+            <span class="badge bg-primary">{{ a.submission_count }} Submissions</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

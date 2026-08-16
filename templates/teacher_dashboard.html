@@ -1,0 +1,246 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Teacher AI Risk Command Center - EduMind AI{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+  <div>
+    <h1 class="h3 text-white fw-bold mb-1">AI Risk Command Center & Teacher Console 👋</h1>
+    <p class="text-muted small mb-0">Class Analytics, Early Warning Surveillance, & Intervention Dispatch</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <a href="{{ url_for('teacher_notifications') }}" class="btn btn-warning btn-sm fw-bold">
+      <i class="bi bi-bell-fill me-1"></i> Issue Risk Alerts
+    </a>
+    <a href="{{ url_for('teacher_students') }}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-people-fill me-1"></i> All Students Roster
+    </a>
+  </div>
+</div>
+
+<!-- Class Overview KPI Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Total Students</div>
+      <div class="display-6 fw-bold text-white my-1">{{ total_students }}</div>
+      <div class="small text-info fw-semibold">B.Tech CSE - 4th Sem</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Class Avg Attendance</div>
+      <div class="display-6 fw-bold text-white my-1">{{ avg_attendance }}%</div>
+      <div class="small text-success">Mandatory: 75% Cutoff</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card">
+      <div class="text-muted small fw-semibold text-uppercase">Class Avg Performance</div>
+      <div class="display-6 fw-bold text-primary my-1">{{ avg_performance }}%</div>
+      <div class="small text-muted">Composite Metric</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="kpi-card high-risk">
+      <div class="text-muted small fw-semibold text-uppercase">High-Risk Students</div>
+      <div class="display-6 fw-bold text-danger my-1">{{ high_risk_count }}</div>
+      <div class="small text-danger fw-semibold">Requires Immediate Intervention</div>
+    </div>
+  </div>
+</div>
+
+<!-- Risk Tier Counters -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="p-3.5 rounded-3 bg-danger bg-opacity-15 border border-danger border-opacity-30 d-flex justify-content-between align-items-center">
+      <div>
+        <div class="text-danger fw-bold small text-uppercase">High-Risk Students</div>
+        <div class="h3 fw-extrabold text-white mb-0">{{ high_risk_count }}</div>
+      </div>
+      <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="p-3.5 rounded-3 bg-warning bg-opacity-15 border border-warning border-opacity-30 d-flex justify-content-between align-items-center">
+      <div>
+        <div class="text-warning fw-bold small text-uppercase">Medium Risk</div>
+        <div class="h3 fw-extrabold text-white mb-0">{{ med_risk_count }}</div>
+      </div>
+      <i class="bi bi-exclamation-circle-fill fs-2 text-warning"></i>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="p-3.5 rounded-3 bg-success bg-opacity-15 border border-success border-opacity-30 d-flex justify-content-between align-items-center">
+      <div>
+        <div class="text-success fw-bold small text-uppercase">Low Risk</div>
+        <div class="h3 fw-extrabold text-white mb-0">{{ low_risk_count }}</div>
+      </div>
+      <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="p-3.5 rounded-3 bg-info bg-opacity-15 border border-info border-opacity-30 d-flex justify-content-between align-items-center">
+      <div>
+        <div class="text-info fw-bold small text-uppercase">Active Interventions</div>
+        <div class="h3 fw-extrabold text-white mb-0">3</div>
+      </div>
+      <i class="bi bi-person-workspace fs-2 text-info"></i>
+    </div>
+  </div>
+</div>
+
+<!-- At-Risk Students Table & Real-Time Roster Filter -->
+<div class="glass-card p-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+    <h3 class="h5 text-white fw-bold mb-0">
+      <i class="bi bi-shield-exclamation text-warning me-2"></i> At-Risk Students Surveillance & Action Roster
+    </h3>
+    
+    <!-- Real-Time Search & Filter -->
+    <div class="d-flex align-items-center gap-2">
+      <input type="text" id="rosterSearch" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Search student or roll..." style="width: 220px;">
+      <select id="rosterFilterRisk" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 160px;">
+        <option value="all">All Risk Levels</option>
+        <option value="high">High & Critical Risk</option>
+        <option value="medium">Medium Risk</option>
+        <option value="low">Low Risk</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table custom-table align-middle" id="rosterTable">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Roll No</th>
+          <th>Attendance</th>
+          <th>Overall Score</th>
+          <th>Trajectory</th>
+          <th>Risk Tier</th>
+          <th style="width: 28%;">Action & Intervention</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in student_roster %}
+        <tr class="roster-row" data-name="{{ s.name|lower }}" data-roll="{{ s.roll_no|lower }}" data-risk="{{ s.risk_code }}">
+          <td>
+            <div class="fw-bold text-white">{{ s.name }}</div>
+            <div class="text-muted" style="font-size: 0.75rem;">{{ s.email }}</div>
+          </td>
+          <td class="text-muted">{{ s.roll_no }}</td>
+          <td class="fw-bold {% if s.att_pct < 75 %}text-danger{% else %}text-success{% endif %}">
+            {{ s.att_pct }}%
+          </td>
+          <td class="fw-bold text-white">{{ s.overall_score }}%</td>
+          <td>
+            <span class="badge {% if s.trend_status == 'Declining' %}bg-danger{% elif s.trend_status == 'Improving' %}bg-success{% else %}bg-secondary{% endif %}">
+              {{ s.trend_status }}
+            </span>
+          </td>
+          <td>
+            <span class="badge-risk {{ s.risk_badge }} small">
+              {{ s.risk_level }}
+            </span>
+          </td>
+          <td>
+            <div class="d-flex align-items-center gap-1.5">
+              <a href="{{ url_for('teacher_student_detail', student_id=s.id) }}" class="btn btn-sm btn-outline-primary py-1 px-2 text-nowrap" title="View Diagnosis">
+                <i class="bi bi-cpu-fill me-1"></i> Diagnosis
+              </a>
+              <a href="{{ url_for('teacher_student_export_report', student_id=s.id) }}" target="_blank" class="btn btn-sm btn-outline-warning py-1 px-2 text-nowrap" title="Export PDF">
+                <i class="bi bi-file-earmark-pdf"></i>
+              </a>
+              <button class="btn btn-sm btn-primary py-1 px-2 text-nowrap" onclick="openInterventionModal({{ s.id }}, '{{ s.name|e }}')">
+                <i class="bi bi-person-workspace me-1"></i> Assign
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Assign Intervention Modal -->
+<div class="modal fade" id="interventionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-white border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title fw-bold text-white"><i class="bi bi-person-workspace text-primary me-2"></i>Assign Academic Intervention</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('api_teacher_assign_intervention') }}" method="POST">
+        <div class="modal-body">
+          <input type="hidden" id="modalStudentId" name="student_id">
+          <div class="mb-3">
+            <label class="form-label small text-muted">Target Student</label>
+            <input type="text" id="modalStudentName" class="form-control bg-dark text-white border-secondary" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-muted">Intervention Title</label>
+            <input type="text" name="title" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Remedial Tutoring / Peer Mentoring" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-muted">Intervention Details</label>
+            <textarea name="description" class="form-control bg-dark text-white border-secondary" rows="3" placeholder="Describe the academic remedial plan..." required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-muted">Required Action Item for Student & Parent</label>
+            <input type="text" name="action_required" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Attend Tuesday & Thursday tutoring at 4:00 PM" required>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm fw-bold">Dispatch Intervention & Parent Alert</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openInterventionModal(studentId, studentName) {
+  document.getElementById('modalStudentId').value = studentId;
+  document.getElementById('modalStudentName').value = studentName;
+  const modal = new bootstrap.Modal(document.getElementById('interventionModal'));
+  modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('rosterSearch');
+  const riskFilter = document.getElementById('rosterFilterRisk');
+  const rows = document.querySelectorAll('.roster-row');
+
+  function filterRoster() {
+    const q = searchInput.value.toLowerCase().trim();
+    const risk = riskFilter.value;
+
+    rows.forEach(r => {
+      const name = r.dataset.name;
+      const roll = r.dataset.roll;
+      const rRisk = r.dataset.risk;
+
+      const matchesSearch = !q || name.includes(q) || roll.includes(q);
+      const matchesRisk = risk === 'all' || 
+                          (risk === 'high' && (rRisk === 'high' || rRisk === 'critical')) ||
+                          (risk === 'medium' && rRisk === 'medium') ||
+                          (risk === 'low' && rRisk === 'low');
+
+      if (matchesSearch && matchesRisk) {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+  }
+
+  if (searchInput) searchInput.addEventListener('input', filterRoster);
+  if (riskFilter) riskFilter.addEventListener('change', filterRoster);
+});
+</script>
+{% endblock %}
